@@ -1,0 +1,158 @@
+<h1 id="introduction">Introduction</h1>
+<p>This project is going to be my (Matthias Schinacher) solution to a homework assignment for Udacity's Deep Reinforcement Learning Nano Degree.<br />
+It contains mainly a python implementation of the DDPG- learning algorithm with replay-memory, and a variation of priority replay. The actor and critic functions (normal and target) of the DDPG are neural networks implemented with pytorch.</p>
+<h1 id="project-details">Project Details</h1>
+<p>The environment ist very similar to/ a variant of the &quot;Tennis&quot; environment from Unity; <a href="https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Learning-Environment-Examples.md#Tennis">Unity ML-Agents GitHub</a>.</p>
+<p>In the environment two agents play a form of tennis, each agent is a racket that con move towards the net (or opposite direction) and up and down. They are tasked to keep the ball in play as long as possible.</p>
+<p>Each agent receives a reward of 0.1 for each timestep where it manages to play the ball across the net, and a reward of -0.01 when it lets the ball drop to the floor or shoots it out of the court.</p>
+<p>The environment can be accessed via python/ has a python interface. The state space is a vector of 24 numeric values (that represent the agents velocity, location and so on) per agent, the action space has two continuous values per agent.</p>
+<p>The defined goal of the homework/ project is/was to achieve a &quot;sustained&quot; score of at least 0.5 per episode. That means, that the algorithm/ the model should be able to average above score 0.5 for &quot;the last 100 episodes&quot; over a number of episodes. The score for each episode is the maximum score of the 2 agents.</p>
+<h1 id="dependencies">Dependencies</h1>
+<p>The actual &quot;program&quot; (agent) is a python script that can be run from the command line. To be able to run it, python 3.6 must be installed.</p>
+<h2 id="python-packages">Python packages</h2>
+<p>The following packages/ libraries are needed</p>
+<ul>
+<li>numpy, at least version 1.11.0</li>
+<li>torch, version 0.4.0 (pytorch)</li>
+</ul>
+<h2 id="other-dependecies">Other dependecies</h2>
+<p>A minimal install of OpenAI gym is required, as well as the classic control environment group and the box2d environment group; instructions how to install this <a href="https://github.com/openai/gym">can be found here</a>.</p>
+<p>Additionally one needs the &quot;Tennis&quot; environment from udacity, which was created for the course. This can be downloaded <a href="https://s3-us-west-1.amazonaws.com/udacity-drlnd/P3/Tennis/Tennis_Linux.zip">for Linux</a> (and other operating systems).</p>
+<h1 id="running-the-script-program-agent">Running the script/ program/ agent</h1>
+<p>To run the script from the command line (Linux), the dependencies mentioned must be installed and the contents of the &quot;Tennis_Linux.zip&quot; need to be unzipped in the same directory, where the actual script &quot;ms_drlnd_collab_comp.py&quot; resides, so that we have a subdirectory &quot;Tennis_Linux&quot;.</p>
+<pre><code>python ms_drlnd_collab_comp.py command-file.ini</code></pre>
+<p>will start the agent as per the parameters in the file &quot;command-file.ini&quot;. Depending on the contents of the command-file, the agent will try to solve the environment and train the neural networks that approximate the actor and critic functions of the DDPG algorithm used. The script can load predefined NN- models from a files and only simulate the Tennis- environment without learning. For more details see also the project- report.</p>
+<h2 id="parameters">Parameters</h2>
+<ul>
+<li>global
+<ul>
+<li>runlog: name of the logfile to use</li>
+</ul></li>
+<li>mode
+<ul>
+<li>train: whether we're in training mode</li>
+<li>show: flag, whether to show the simulation in &quot;human time&quot;</li>
+</ul></li>
+<li>rand
+<ul>
+<li>seed: seed for random number generation</li>
+</ul></li>
+<li>model
+<ul>
+<li>h1: first size- parameter for the actor- NN- model</li>
+<li>h2: second size- parameter for the actor-NN- model</li>
+<li>c_h1: first size- parameter for the critic- NN- model</li>
+<li>c_h2: second size- parameter for the critic-NN- model</li>
+<li>batch_norm: whether to use batch norm layers (flag)*</li>
+<li>load_file: name- fragment for the files from which to load models (if any)</li>
+<li>save_file: name- fragment for the files to save the models to</li>
+</ul></li>
+<li>hyperparameters
+<ul>
+<li>episodes: number of episodes to run:</li>
+<li>max_steps: maximum number of time-steps to play per episode</li>
+<li>warmup_episodes: epiosodes to run with pure random sampling</li>
+<li>warmup_episodes_f: scale factor for pure random sampling</li>
+<li>replay_buffersize: size of the replay memory</li>
+<li>replay_batchsize: number of transitions to sample per optimizing step</li>
+<li>replay_steps: simulation-steps between each optimization run</li>
+<li>optimizer_steps: no. of batch optimization-steps per optimization run</li>
+<li>learning_rate: the learning rate for the actor optimizer</li>
+<li>learning_rate_c: the learning rate for the critic optimizer</li>
+<li>gamma: DPPG gamma factor</li>
+<li>grad_norm_clip: grad-norm clipping treshold for the critic (smaller 0.0 means no clipping)</li>
+<li>prio_replay: whether to use priority replay (flag)</li>
+<li>prio_offset: offset- parameter for the priority replay, if used</li>
+<li>tau: tau (soft target update) - sample action noise
+<ul>
+<li>epsilon_start: start value for epsilon</li>
+<li>epsilon_delta: value to subtract from epsilo for each optimization step</li>
+<li>epsilon_min: minimum/ final value for epsilon</li>
+<li>noise_theta: theta for noise process</li>
+<li>noise_sigma: sigma for noise process</li>
+</ul></li>
+</ul></li>
+</ul>
+<p>*: note that the &quot;batch_norm&quot;- parameter, though present in the script, is currently not usable, as batch-norm is not working (in the moment). I'll fix this, when I find time, but it was not neccessary for this project.</p>
+<h3 id="example-command-file-contents">Example command-file contents</h3>
+<pre><code>[global]
+runlog = test10.log
+
+[mode]
+train = True
+show = False
+
+[rand]
+seed = 14941
+
+[model]
+save_file  = test10
+model_h1   = 311
+model_h2   = 177
+model_c_h1 = 309
+model_c_h2 = 179
+batch_norm = False
+
+[hyperparameters]
+episodes          = 1500
+warmup_episodes   = 50
+warmup_episodes_f = 0.4
+replay_buffersize = 10000
+replay_batchsize  = 512
+replay_steps      = 1
+gamma             = 0.99
+learning_rate     = 0.0002
+learning_rate_c   = 0.002
+optimizer_steps   = 1
+tau               = 0.01
+max_steps         = 500
+
+epsilon_start     = 2.5
+epsilon_delta     = 0.004
+epsilon_min       = 0.02
+noise_theta       = 0.15
+noise_sigma       = 0.2
+
+prio_replay       = True
+prio_offset       = 0.1
+grad_norm_clip    = 5.0</code></pre>
+<h2 id="output">Output</h2>
+<h3 id="logfile">Logfile</h3>
+<p>The main output is a log file which contains various information as within #- style comment lines and the time-series data of - Episode- number - Score (at episode end) Average Score from the last 100 episodes Steps played for the episode/ episode length in steps - Size of replay buffer at episode end - The epsilon at episode end</p>
+<p>Example:</p>
+<pre><code># Episode Score average(last-100-Scores) MinReward MaxReward RMSize Epsilon
+1 0.0 0.0 14 0.0 403 -
+2 0.0 0.0 15 0.0 832 -
+...
+103 0.0 0.007800000142306089 14 3230 2.1909999999999883
+104 0.0 0.007800000142306089 14 3258 2.187999999999988
+105 0.0 0.007800000142306089 14 3286 2.184999999999988
+106 0.0 0.007800000142306089 15 3316 2.181999999999988
+...</code></pre>
+<h1 id="the-solution">The solution</h1>
+<p>TODO</p>
+<h2 id="graph">Graph</h2>
+<p>The &quot;best&quot; yet simulation run was the &quot;test10&quot; one, as can be seen in:</p>
+<div class="figure">
+<img src="test10.png" alt="My solution" />
+<p class="caption">My solution</p>
+</div>
+<p>One should be able to replicate the result by running:</p>
+<pre><code>python ms_drlnd_collab_comp.py test10.ini</code></pre>
+<p>I ALMOST reached the required 0.5 over the last 100 ... almost. See the actual project report for details.</p>
+<h2 id="additional-remarks">Additional remarks</h2>
+<p>TODO</p>
+<h1 id="misc">Misc</h1>
+<h2 id="zip--archives">ZIP- archives</h2>
+<h3 id="ini.zip">INI.zip</h3>
+<p>Command files for the simulation runs.</p>
+<h3 id="logs.zip">LOGS.zip</h3>
+<p>Log outputs of the simulation runs.</p>
+<h3 id="graphs.zip">GRAPHS.zip</h3>
+<p>Pictures created with gnuplot from the log-files and used for the project report.</p>
+<h3 id="models.zip">MODELS.zip</h3>
+<p>The NN- models resulting from the simulation runs.</p>
+<h2 id="see-also">See also</h2>
+<ul>
+<li>report.pdf: the project report, will contain additional information, but is not finished yet :-)</li>
+</ul>
