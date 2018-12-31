@@ -120,7 +120,7 @@ grad_norm_clip    = 5.0</code></pre>
 <h3 id="logfile">Logfile</h3>
 <p>The main output is a log file which contains various information as within #- style comment lines and the time-series data of - Episode- number - Score (at episode end) Average Score from the last 100 episodes Steps played for the episode/ episode length in steps - Size of replay buffer at episode end - The epsilon at episode end</p>
 <p>Example:</p>
-<pre><code># Episode Score average(last-100-Scores) MinReward MaxReward RMSize Epsilon
+<pre><code># Episode Score average(last-100-Scores) Steps RMSize Epsilon
 1 0.0 0.0 14 0.0 403 -
 2 0.0 0.0 15 0.0 832 -
 ...
@@ -130,19 +130,27 @@ grad_norm_clip    = 5.0</code></pre>
 106 0.0 0.007800000142306089 15 3316 2.181999999999988
 ...</code></pre>
 <h1 id="the-solution">The solution</h1>
-<p>TODO</p>
+<p>I did need to experiment quite a bit with different sets of model sizes and hyper-parameters until I found a combination that solved the project.</p>
 <h2 id="graph">Graph</h2>
-<p>The &quot;best&quot; yet simulation run was the &quot;test10&quot; one, as can be seen in:</p>
+<p>The &quot;best&quot; yet simulation run was the &quot;test11&quot; one, as can be seen in:</p>
 <div class="figure">
-<img src="test10.png" alt="My solution" />
+<img src="test11.png" alt="My solution" />
 <p class="caption">My solution</p>
 </div>
 <p>One should be able to replicate the result by running:</p>
-<pre><code>python ms_drlnd_collab_comp.py test10.ini</code></pre>
-<p>I ALMOST reached the required 0.5 over the last 100 ... almost. See the actual project report for details.</p>
-<h2 id="additional-remarks">Additional remarks</h2>
-<p>TODO</p>
+<pre><code>python ms_drlnd_collab_comp.py test11.ini</code></pre>
+<p>It did reach score 0.5 over the last 100 episodes at episode 1413 and actually reached 0.8 (avrg. last 100).<br />
+See the actual project report for details.</p>
+<h2 id="video">Video</h2>
+<p>The file &quot;test11s.3gp&quot; contains about 30 seconds of video showing the model from &quot;test11&quot; playing. This should be reproducable by:</p>
+<pre><code>python ms_drlnd_collab_comp.py test11s.ini</code></pre>
+<p>(&quot;s&quot; for show, models must be unzipped in the same directory)</p>
+<video src="test11s.webm" poster="video_test11s.png" width="600" controls preload>
+</video>
 <h1 id="misc">Misc</h1>
+<h2 id="additional-remarks">Additional remarks</h2>
+<p>The solution I found was DDPG where both agents used the same actor and critic with a joined replay buffer. I experimented with a version, where the networks were seperate (each agent had it's own critics and actors and a seperate replay buffer), but this version never reached a sustained 0.5 score;<br />
+see script &quot;ms_drlnd_collab_comp_sep.py&quot;.</p>
 <h2 id="zip--archives">ZIP- archives</h2>
 <h3 id="ini.zip">INI.zip</h3>
 <p>Command files for the simulation runs.</p>
@@ -152,6 +160,8 @@ grad_norm_clip    = 5.0</code></pre>
 <p>Pictures created with gnuplot from the log-files and used for the project report.</p>
 <h3 id="models.zip">MODELS.zip</h3>
 <p>The NN- models resulting from the simulation runs.</p>
+<p>NOTE: the models are usually the models/ networks at the end of a simulation- run. Thus they are not neccessarily the &quot;best&quot; models of that run, they do not represent the state of the networks, when the actor was on top of it's ability to compute good actions.<br />
+Except for the simulation-runs that did solve the task; for these, additional models were saved; more precisly the models at the end of the episode with the highest score after the task was solved (avrg. 0.5 for last 100) are saved with the additional &quot;_max&quot;- indicator in names.</p>
 <h2 id="see-also">See also</h2>
 <ul>
 <li>report.pdf: the project report, will contain additional information, but is not finished yet :-)</li>

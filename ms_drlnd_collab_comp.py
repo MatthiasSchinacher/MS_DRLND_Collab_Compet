@@ -191,11 +191,6 @@ rl.write('# load_file:   {}\n'.format(load_file))
 rl.write('# save_file:   {}\n'.format(save_file))
 rl.flush()
 
-# * ---------------- *
-#   torch:
-#    local computer was a laptop with no CUDA available
-#    => feel free to change this, if you have a machine (with GPU)
-# * ---------------- *
 dtype = torch.float64
 torch.set_default_dtype(dtype)
 if torch.cuda.is_available():
@@ -304,41 +299,40 @@ brain = env.brains[brain_name]
 #   the actual algorithm
 # * ---------------- *
 
-if TRAIN:
-    # a very simple replay memory, a list (of tuples)
-    #   - is assumed to never shrink
-    #   - only inserts at given index, if next index would be > size, start at 0
-    #         => list entries 0..size-1 are occupied
-    replay_memory = []   # actual replay memory
-    replay_prio = [] # priority used to compute sampling probability
-    priomax = 1.0
-    priosum = 0.0
-    rm_size = 0          # number of entries in replay memory
-    rm_next = 0          # next index to use for insert
-    
-    if load_file:
-        lf = 'transitions_{}.pickle'.format(load_file)
-        if os.path.isfile(lf):
-            with open(lf, 'rb') as f:
-                tmp = pickle.load(f)
-                if len(tmp) < 3:
-                    rl.write('# .. loading replay-buffer/ reward-buffer from "{}"\n'.format(lf))
-                    ( tmpm, tmpr ) = tmp
-                    replay_memory = tmpm if REPLAY_BUFFERSIZE >= len(tmpm) else tmpm[0:REPLAY_BUFFERSIZE]
-                    replay_prio = tmpr if REPLAY_BUFFERSIZE >= len(tmpr) else tmpr[0:REPLAY_BUFFERSIZE]
-                    rm_size = len(replay_memory)
-                    rm_next = rm_size if rm_size < REPLAY_BUFFERSIZE else 0
-                else:
-                    rl.write('# .. [new] loading replay-buffer/ reward_buffer and rm_next from "{}"\n'.format(lf))
-                    ( tmpm, tmpr, rm_next ) = tmp
-                    replay_memory = tmpm if REPLAY_BUFFERSIZE >= len(tmpm) else tmpm[0:REPLAY_BUFFERSIZE]
-                    replay_prio = tmpr if REPLAY_BUFFERSIZE >= len(tmpr) else tmpr[0:REPLAY_BUFFERSIZE]
-                    rm_size = len(replay_memory)
-                    if rm_next >= rm_size:
-                        rm_next = 0
-            if PRIO_REPLAY and rm_size > 0:
-                priomax = float(max(replay_prio))
-                priosum = float(sum(replay_prio))
+# a very simple replay memory, a list (of tuples)
+#   - is assumed to never shrink
+#   - only inserts at given index, if next index would be > size, start at 0
+#         => list entries 0..size-1 are occupied
+replay_memory = []   # actual replay memory
+replay_prio = [] # priority used to compute sampling probability
+priomax = 1.0
+priosum = 0.0
+rm_size = 0          # number of entries in replay memory
+rm_next = 0          # next index to use for insert
+
+if load_file:
+    lf = 'transitions_{}.pickle'.format(load_file)
+    if os.path.isfile(lf):
+        with open(lf, 'rb') as f:
+            tmp = pickle.load(f)
+            if len(tmp) < 3:
+                rl.write('# .. loading replay-buffer/ reward-buffer from "{}"\n'.format(lf))
+                ( tmpm, tmpr ) = tmp
+                replay_memory = tmpm if REPLAY_BUFFERSIZE >= len(tmpm) else tmpm[0:REPLAY_BUFFERSIZE]
+                replay_prio = tmpr if REPLAY_BUFFERSIZE >= len(tmpr) else tmpr[0:REPLAY_BUFFERSIZE]
+                rm_size = len(replay_memory)
+                rm_next = rm_size if rm_size < REPLAY_BUFFERSIZE else 0
+            else:
+                rl.write('# .. [new] loading replay-buffer/ reward_buffer and rm_next from "{}"\n'.format(lf))
+                ( tmpm, tmpr, rm_next ) = tmp
+                replay_memory = tmpm if REPLAY_BUFFERSIZE >= len(tmpm) else tmpm[0:REPLAY_BUFFERSIZE]
+                replay_prio = tmpr if REPLAY_BUFFERSIZE >= len(tmpr) else tmpr[0:REPLAY_BUFFERSIZE]
+                rm_size = len(replay_memory)
+                if rm_next >= rm_size:
+                    rm_next = 0
+        if PRIO_REPLAY and rm_size > 0:
+            priomax = float(max(replay_prio))
+            priosum = float(sum(replay_prio))
 
 score_buffer = []
 noise = np.zeros( (NUM_AGENTS,ACTION_SIZE) )
@@ -351,6 +345,10 @@ train_mode = not SHOW
 
 optimizer = torch.optim.Adam(modelC.parameters(),lr=LEARNING_RATE_C)#,weight_decay=0.0001)
 optimizerA = torch.optim.Adam(modelA.parameters(),lr=LEARNING_RATE)
+
+solved = False
+maxscore = 0.0
+ep_maxscore = 0
 
 for episode in range(1,EPISODES+1):
     env_info = env.reset(train_mode=train_mode)[brain_name] # reset the environment
@@ -489,12 +487,40 @@ for episode in range(1,EPISODES+1):
     while len(score_buffer) > 100:
         score_buffer.pop(0)
     l100_score = float(sum(score_buffer))/float(len(score_buffer)) if len(score_buffer) >= 100 else float(0)
+    
+    if l100_score > 0.5:
+        solved = True
+    if solved:
+        if fscore > maxscore:
+            maxscore = fscore
+            ep_maxscore = episode
+
+            if save_file:
+                rl.write('# maximum solving score until now; score: {}"\n'.format(fscore))
+                sf = 'actor_{}_max.model'.format(save_file)
+                rl.write('# .. writing actor to "{}"\n'.format(sf))
+                torch.save(modelA,sf)
+                sf = 'target_actor_{}_max.model'.format(save_file)
+                rl.write('# .. writing target-actor to "{}"\n'.format(sf))
+                torch.save(modelAt,sf)
+                sf = 'critic_{}_max.model'.format(save_file)
+                rl.write('# .. writing critic to "{}"\n'.format(sf))
+                torch.save(modelC,sf)
+                sf = 'target_critic_{}_max.model'.format(save_file)
+                rl.write('# .. writing target-critic to "{}"\n'.format(sf))
+                torch.save(modelCt,sf)
+        
+                sf = 'transitions_{}_max.pickle'.format(save_file)
+                rl.write('# .. saving transisitions to "{}"\n'.format(sf))
+                with open(sf, 'wb') as f:
+                    pickledata = ( replay_memory, replay_prio, rm_next )
+                    pickle.dump(pickledata, f, pickle.HIGHEST_PROTOCOL)
 
     rl.write('{} {} {} {} {} {}\n'.format(episode,fscore,l100_score,step,rm_size,(epsilon if episode > WARMUP_EPISODES else float(0))))
     rl.flush()
     print("Episode: {}; Score: {} ({}); Step: {}; RMSize: {}; Epsilon: {}".format(episode,fscore,l100_score,step,rm_size,(epsilon if episode > WARMUP_EPISODES else '-')))
 
-    if TRAIN and save_file and episode%20 == 0:
+    if TRAIN and save_file and episode%50 == 0:
         sf = 'actor_{}_bak.model'.format(save_file)
         rl.write('# .. writing actor to "{}"\n'.format(sf))
         torch.save(modelA,sf)
@@ -515,6 +541,8 @@ for episode in range(1,EPISODES+1):
             pickle.dump(pickledata, f, pickle.HIGHEST_PROTOCOL)
 
 env.close()
+rl.write('# *******\n# Solved: {}; maxscore (only if solved): {} at episode {}\n# *******\n'.format(solved,maxscore,ep_maxscore))
+print('*******\nSolved: {}; maxscore (only if solved): {} at episode {}\n*******\n'.format(solved,maxscore,ep_maxscore))
 
 if TRAIN:
     if save_file:

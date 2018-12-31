@@ -157,7 +157,7 @@ and the time-series data of
 
 Example:
 
-    # Episode Score average(last-100-Scores) MinReward MaxReward RMSize Epsilon
+    # Episode Score average(last-100-Scores) Steps RMSize Epsilon
     1 0.0 0.0 14 0.0 403 -
     2 0.0 0.0 15 0.0 832 -
     ...
@@ -168,25 +168,40 @@ Example:
     ...
 
 # The solution
-TODO
+I did need to experiment quite a bit with different sets of model sizes
+and hyper-parameters until I found a combination that solved the project.
 
 ## Graph
+The "best" yet simulation run was the "test11" one, as can be seen in:
 
-The "best" yet simulation run was the "test10" one, as can be seen in:
-
-![My solution](test10.png)
+![My solution](test11.png)
 
 One should be able to replicate the result by running:
 
-    python ms_drlnd_collab_comp.py test10.ini
+    python ms_drlnd_collab_comp.py test11.ini
 
-I ALMOST reached the required 0.5 over the last 100 ... almost.
+It did reach score 0.5 over the last 100 episodes at episode 1413
+and actually reached 0.8 (avrg. last 100).  
 See the actual project report for details.
 
-## Additional remarks
-TODO
+## Video
+The file "test11s.3gp" contains about 30 seconds of video showing the model
+from "test11" playing. This should be reproducable by:
+
+    python ms_drlnd_collab_comp.py test11s.ini
+
+("s" for show, models must be unzipped in the same directory)
+
+<video src="test11s.webm" poster="video_test11s.png" width="600" controls preload></video>
 
 # Misc
+## Additional remarks
+The solution I found was DDPG where both agents used the same actor and critic
+with a joined replay buffer. I experimented with a version, where the networks
+were seperate (each agent had it's own critics and actors and a seperate
+replay buffer), but this version never reached a sustained 0.5 score;  
+see script "ms_drlnd_collab_comp_sep.py".
+
 ## ZIP- archives
 ### INI.zip
 Command files for the simulation runs.
@@ -198,7 +213,16 @@ Log outputs of the simulation runs.
 Pictures created with gnuplot from the log-files and used for the project report.
 
 ### MODELS.zip
-The NN- models resulting from the simulation runs.
+The NN- models resulting from the simulation runs.  
+
+NOTE: the models are usually the models/ networks at the end of a simulation- run.
+Thus they are not neccessarily the "best" models of that run, they do not represent
+the state of the networks, when the actor was on top of it's ability to compute
+good actions.  
+Except for the simulation-runs that did solve the task; for these, additional
+models were saved; more precisly the models at the end of the episode with the
+highest score after the task was solved (avrg. 0.5 for last 100) are saved with
+the additional "_max"- indicator in names.
 
 ## See also
 * report.pdf: the project report, will contain additional information, but is not finished yet :-)
