@@ -185,13 +185,14 @@ and actually reached 0.8 (avrg. last 100).
 See the actual project report for details.
 
 ## Video
-The file "test11s.3gp" contains about 30 seconds of video showing the model
+The file "test11s.webm" contains about 30 seconds of video showing the model
 from "test11" playing. This should be reproducable by:
 
     python ms_drlnd_collab_comp.py test11s.ini
 
 ("s" for show, models must be unzipped in the same directory)
 
+(I'm trying to embed the video here, but I fear github is not showing this. Why?)  
 <video src="test11s.webm" poster="video_test11s.png" width="600" controls preload></video>
 
 # Misc
@@ -225,4 +226,4 @@ highest score after the task was solved (avrg. 0.5 for last 100) are saved with
 the additional "_max"- indicator in names.
 
 ## See also
-* report.pdf: the project report, will contain additional information, but is not finished yet :-)
+* report.pdf: the project report, contains additional information
