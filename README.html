@@ -1,6 +1,9 @@
 <h1 id="introduction">Introduction</h1>
 <p>This project is going to be my (Matthias Schinacher) solution to a homework assignment for Udacity's Deep Reinforcement Learning Nano Degree.<br />
 It contains mainly a python implementation of the DDPG- learning algorithm with replay-memory, and a variation of priority replay. The actor and critic functions (normal and target) of the DDPG are neural networks implemented with pytorch.</p>
+<h2 id="update-2019-01-06">[UPDATE 2019-01-06]</h2>
+<p>After the project already had been accepted and reviewed, I actually did by coincedence find a bug in the critic network layout. The critic yielded two values instead of one, probably due to a cut and paste error, when I used the actor- network as a blueprint somehow. The algorithm still did work correctly, since only the first value was actually used, but I consider it a bug none the less.</p>
+<p>I fixed the bug and ran another simulation with almost identical parameters as the winning &quot;test11&quot; configuration, the &quot;test15&quot; parameterset. It also shows the desired learning.</p>
 <h1 id="project-details">Project Details</h1>
 <p>The environment ist very similar to/ a variant of the &quot;Tennis&quot; environment from Unity; <a href="https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Learning-Environment-Examples.md#Tennis">Unity ML-Agents GitHub</a>.</p>
 <p>In the environment two agents play a form of tennis, each agent is a racket that con move towards the net (or opposite direction) and up and down. They are tasked to keep the ball in play as long as possible.</p>
@@ -147,6 +150,12 @@ See the actual project report for details.</p>
 <p>(&quot;s&quot; for show, models must be unzipped in the same directory)</p>
 <p>(I'm trying to embed the video here, but I fear github is not showing this. Why?)<br />
 <video src="test11s.webm" poster="video_test11s.png" width="600" controls preload></video></p>
+<h1 id="update-2019-01-06-1">[UPDATE 2019-01-06]</h1>
+<p>Result of parameterset &quot;test15&quot; (command-file &quot;test15.ini&quot;); simulation run after bugfix for critic network layout.</p>
+<div class="figure">
+<img src="test15.png" alt="test15 is learning still" />
+<p class="caption">test15 is learning still</p>
+</div>
 <h1 id="misc">Misc</h1>
 <h2 id="additional-remarks">Additional remarks</h2>
 <p>The solution I found was DDPG where both agents used the same actor and critic with a joined replay buffer. I experimented with a version, where the networks were seperate (each agent had it's own critics and actors and a seperate replay buffer), but this version never reached a sustained 0.5 score;<br />

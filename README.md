@@ -4,6 +4,17 @@ It contains mainly a python implementation of the DDPG- learning algorithm with 
 and a variation of priority replay. The actor and critic functions (normal
 and target) of the DDPG are neural networks implemented with pytorch.
 
+## [UPDATE 2019-01-06]
+After the project already had been accepted and reviewed, I actually did by
+coincedence find a bug in the critic network layout. The critic yielded two
+values instead of one, probably due to a cut and paste error, when I used the
+actor- network as a blueprint somehow. The algorithm still did work correctly,
+since only the first value was actually used, but I consider it a bug none the less.
+
+I fixed the bug and ran another simulation with almost identical parameters
+as the winning "test11" configuration, the "test15" parameterset.
+It also shows the desired learning.
+
 # Project Details
 The environment ist very similar to/ a variant of the "Tennis"
 environment from Unity; [Unity ML-Agents GitHub](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Learning-Environment-Examples.md#Tennis).
@@ -194,6 +205,12 @@ from "test11" playing. This should be reproducable by:
 
 (I'm trying to embed the video here, but I fear github is not showing this. Why?)  
 <video src="test11s.webm" poster="video_test11s.png" width="600" controls preload></video>
+
+# [UPDATE 2019-01-06]
+Result of parameterset "test15" (command-file "test15.ini"); simulation run after
+bugfix for critic network layout.
+
+![test15 is learning still](test15.png)
 
 # Misc
 ## Additional remarks

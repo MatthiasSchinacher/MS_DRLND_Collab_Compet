@@ -232,7 +232,7 @@ class MSC(torch.nn.Module):
         self.r1  = torch.nn.ReLU()
         self.ll2 = torch.nn.Linear(size1+action_size, size2)
         self.r2  = torch.nn.ReLU()
-        self.ll3 = torch.nn.Linear(size2, action_size)
+        self.ll3 = torch.nn.Linear(size2, 1)
         
         self.flag_batch_norm = flag_batch_norm
         if flag_batch_norm:
